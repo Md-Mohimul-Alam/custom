@@ -10,7 +10,7 @@ PeerOrgs:
     Domain: hospital1.ehr.com
     EnableNodeOUs: true
     Template:
-      Count: 2
+      Count: 1
     Users:
       Count: 1
 
@@ -18,7 +18,7 @@ PeerOrgs:
     Domain: hospital2.ehr.com
     EnableNodeOUs: true
     Template:
-      Count: 2
+      Count: 1
     Users:
       Count: 1
 
@@ -26,6 +26,6 @@ PeerOrgs:
     Domain: research.ehr.com
     EnableNodeOUs: true
     Template:
-      Count: 2
+      Count: 1
     Users:
       Count: 1
