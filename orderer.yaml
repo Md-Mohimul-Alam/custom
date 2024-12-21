@@ -1,0 +1,62 @@
+# General Configuration
+General:
+  ListenAddress: 0.0.0.0
+  ListenPort: 7050
+
+  # TLS settings
+  TLS:
+    Enabled: true
+    PrivateKey: tls/server.key
+    Certificate: tls/server.crt
+    RootCAs:
+      - tls/ca.crt
+    ClientAuthRequired: false
+    ClientRootCAs: []
+
+  # Path to the MSP directory
+  LocalMSPDir: msp
+  LocalMSPID: OrdererMSP
+
+  # Genesis Block settings
+  GenesisMethod: file
+  GenesisFile: "/Users/mohimthesaesk/Documents/customFabric/channel-artifacts/orderer.genesis.block"
+  BootstrapMethod: file
+  BootstrapFile: "/Users/mohimthesaesk/Documents/customFabric/channel-artifacts/orderer.genesis.block"
+  # Keepalive settings
+  Keepalive:
+    ServerMinInterval: 1m
+    ServerInterval: 2h
+    ServerTimeout: 20s
+
+  # Connection timeout
+  ConnectionTimeout: 0s
+
+# File Ledger settings
+FileLedger:
+  Location: /var/hyperledger/production/orderer
+  Prefix: ""
+
+# Consensus settings for etcdraft (default consensus type in Fabric)
+Consensus:
+  WALDir: /var/hyperledger/production/orderer/etcdraft/wal
+  SnapDir: /var/hyperledger/production/orderer/etcdraft/snapshot
+
+# Operations service
+Operations:
+  ListenAddress: 127.0.0.1:8443
+  TLS:
+    Enabled: false
+    PrivateKey: ""
+    Certificate: ""
+    RootCAs: []
+    ClientAuthRequired: false
+    ClientRootCAs: []
+
+# Metrics configuration
+Metrics:
+  Provider: disabled
+  Statsd:
+    Network: udp
+    Address: 127.0.0.1:8125
+    WriteInterval: 30s
+    Prefix: ""

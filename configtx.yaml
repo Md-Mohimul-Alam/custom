@@ -1,0 +1,243 @@
+# Configuration for Hyperledger Fabric channels and profiles
+Organizations:
+  # Orderer Organization Configuration
+  - &OrdererOrg
+    Name: OrderingService
+    ID: OrdererMSP
+    MSPDir: crypto-config/ordererOrganizations/ehr.com/msp
+    Policies:
+        Readers:
+            Type: Signature
+            Rule: "OR('OrdererMSP.member')"
+        Writers:
+            Type: Signature
+            Rule: "OR('OrdererMSP.member')"
+        Admins:
+            Type: Signature
+            Rule: "OR('OrdererMSP.admin')"
+    OrdererEndpoints:
+        - orderer.ehr.com:7050
+
+  # Hospital 1 Organization Configuration
+  - &Hospital1
+    Name: Hospital1MSP
+    ID: Hospital1MSP
+    MSPDir: crypto-config/peerOrganizations/hospital1.ehr.com/msp
+    Policies:
+        Readers:
+            Type: Signature
+            Rule: "OR('Hospital1MSP.admin', 'Hospital1MSP.peer', 'Hospital1MSP.client')"
+        Writers:
+            Type: Signature
+            Rule: "OR('Hospital1MSP.admin', 'Hospital1MSP.client')"
+        Admins:
+            Type: Signature
+            Rule: "OR('Hospital1MSP.admin')" 
+        Endorsement:
+            Type: Signature
+            Rule: "OR('Hospital1MSP.peer')"     
+    AnchorPeers:
+      - Host: peer0.hospital1.ehr.com
+        Port: 7051
+
+  # Hospital 2 Organization Configuration
+  - &Hospital2
+    Name: Hospital2MSP
+    ID: Hospital2MSP
+    MSPDir: crypto-config/peerOrganizations/hospital2.ehr.com/msp
+    Policies:
+        Readers:
+            Type: Signature
+            Rule: "OR('Hospital2MSP.admin', 'Hospital2MSP.peer', 'Hospital2MSP.client')"
+        Writers:
+            Type: Signature
+            Rule: "OR('Hospital2MSP.admin', 'Hospital2MSP.client')"
+        Admins:
+            Type: Signature
+            Rule: "OR('Hospital2MSP.admin')" 
+        Endorsement:
+            Type: Signature
+            Rule: "OR('Hospital2MSP.peer')" 
+    AnchorPeers:
+      - Host: peer0.hospital2.ehr.com
+        Port: 7051
+
+  # Research Institute Organization Configuration
+  - &ResearchInstitute
+    Name: ResearchInstituteMSP
+    ID: ResearchInstituteMSP
+    MSPDir: crypto-config/peerOrganizations/research.ehr.com/msp
+    Policies:
+        Readers:
+            Type: Signature
+            Rule: "OR('ResearchInstituteMSP.admin', 'ResearchInstituteMSP.peer', 'ResearchInstituteMSP.client')"
+        Writers:
+            Type: Signature
+            Rule: "OR('ResearchInstituteMSP.admin', 'ResearchInstituteMSP.client')"
+        Admins:
+            Type: Signature
+            Rule: "OR('ResearchInstituteMSP.admin')" 
+        Endorsement:
+            Type: Signature
+            Rule: "OR('ResearchInstituteMSP.peer')" 
+    AnchorPeers:
+      - Host: peer0.research.ehr.com
+        Port: 7051
+
+Capabilities:
+  # Capabilities for Channels, Orderers, and Applications
+  Channel: &ChannelCapabilities
+    V2_0: true
+
+  Orderer: &OrdererCapabilities
+    V2_0: true
+
+  Application: &ApplicationCapabilities
+    V2_0: true
+
+Orderer: &OrdererDefaults
+  OrdererType: solo
+  Addresses: 
+    - orderer.ehr.com:7050
+  BatchTimeout: 2s
+  BatchSize:
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 99 MB
+    PreferredMaxBytes: 512 KB
+  Kafka:
+    Brokers: 
+      - 127.0.0.1:9092
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+
+Channel: &ChannelDefaults
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+  Capabilities:
+    <<: *ChannelCapabilities
+
+Application: &ApplicationDefaults
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+Profiles:
+  # OrdererGenesis Profile for the Orderer Configuration
+  OrdererGenesis:
+    <<: *ChannelDefaults
+    Capabilities:
+      <<: *ChannelCapabilities
+    Orderer:
+      <<: *OrdererDefaults
+      Organizations:
+        - *OrdererOrg
+      Capabilities:
+        <<: *OrdererCapabilities
+    Consortiums:
+      MyFirstConsortium:
+        Organizations:
+          - *Hospital1
+          - *Hospital2
+          - *ResearchInstitute
+
+  # Channel1 Profile for Hospital1 and ResearchInstitute
+  Channel1:
+    Consortium: MyFirstConsortium
+    <<: *ChannelDefaults
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *Hospital1
+        - *ResearchInstitute
+      Policies:
+        Readers:
+          Type: ImplicitMeta
+          Rule: "ANY Readers"
+        Writers:
+          Type: ImplicitMeta
+          Rule: "ANY Writers"
+        Admins:
+          Type: ImplicitMeta
+          Rule: "MAJORITY Admins"
+        LifecycleEndorsement:
+          Type: ImplicitMeta
+          Rule: "MAJORITY Endorsement"
+        Endorsement:
+          Type: ImplicitMeta
+          Rule: "MAJORITY Endorsement"
+      Capabilities:
+        <<: *ApplicationCapabilities
+      ACLs:
+        # Default policy for invoking chaincodes
+        peer/Propose: /Channel/Application/Writers
+        # Default policy for chaincode lifecycle operations
+        peer/ChaincodeLifecycle: /Channel/Application/Admins
+
+  # Channel2 Profile for Hospital2 and ResearchInstitute
+  Channel2:
+    Consortium: MyFirstConsortium
+    <<: *ChannelDefaults
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *Hospital2
+        - *ResearchInstitute
+      Policies:
+        Readers:
+          Type: ImplicitMeta
+          Rule: "ANY Readers"
+        Writers:
+          Type: ImplicitMeta
+          Rule: "ANY Writers"
+        Admins:
+          Type: ImplicitMeta
+          Rule: "MAJORITY Admins"
+        LifecycleEndorsement:
+          Type: ImplicitMeta
+          Rule: "MAJORITY Endorsement"
+        Endorsement:
+          Type: ImplicitMeta
+          Rule: "MAJORITY Endorsement"
+      Capabilities:
+        <<: *ApplicationCapabilities
+      ACLs:
+        # Default policy for invoking chaincodes
+        peer/Propose: /Channel/Application/Writers
+        # Default policy for chaincode lifecycle operations
+        peer/ChaincodeLifecycle: /Channel/Application/Admins

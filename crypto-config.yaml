@@ -1,0 +1,31 @@
+# crypto-config.yaml
+OrdererOrgs:
+  - Name: OrderingSe
+    Domain: ehr.com
+    Specs:
+      - Hostname: orderer
+
+PeerOrgs:
+  - Name: Hospital1
+    Domain: hospital1.ehr.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 1
+
+  - Name: Hospital2
+    Domain: hospital2.ehr.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 1
+
+  - Name: ResearchInstitute
+    Domain: research.ehr.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 1
